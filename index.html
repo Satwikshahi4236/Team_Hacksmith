@@ -1,0 +1,106 @@
+\<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signature Authentication</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+
+        #uploadForm {
+            margin-bottom: 20px;
+        }
+
+        #result {
+            margin-top: 20px;
+        }
+
+        #images {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        img {
+            max-width: 45%;
+            max-height: 200px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Signature Authentication</h1>
+
+    <form id="uploadForm" enctype="multipart/form-data">
+        <label for="image1">Select Image 1:</label>
+        <input type="file" id="image1" name="image1" accept=".jpg, .jpeg, .png" required>
+        <br>
+        <label for="image2">Select Image 2:</label>
+        <input type="file" id="image2" name="image2" accept=".jpg, .jpeg, .png" required>
+        <br>
+        <input type="button" value="Compare" onclick="compareImages()">
+    </form>
+
+    <div id="result">
+        <!-- Comparison results will be displayed here -->
+    </div>
+
+    <div id="images">
+        <!-- Display images if different dimensions or mean squared error is not the same -->
+    </div>
+
+    <script>
+        function compareImages() {
+            var image1Input = document.getElementById('image1');
+            var image2Input = document.getElementById('image2');
+    
+            var formData = new FormData();
+            formData.append('image1', image1Input.files[0]);
+            formData.append('image2', image2Input.files[0]);
+    
+            fetch('/compare-images', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Display the results on the webpage
+                document.getElementById('result').innerHTML = `
+                    <p>Mean Squared Error: ${data.mse}</p>
+                    <p>Structural Similarity Index: ${data.ssim}</p>
+                `;
+    
+                // Display images if different dimensions or mean squared error is not the same
+                if (data.error) {
+                    alert(data.error);
+                } else if (data.image1 && data.image2) {
+                    document.getElementById('images').innerHTML = `
+                        <img src="data:image/png;base64,${arrayBufferToBase64(data.image1)}" alt="Image 1">
+                        <img src="data:image/png;base64,${arrayBufferToBase64(data.image2)}" alt="Image 2">
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    
+        function arrayBufferToBase64(buffer) {
+            var binary = '';
+            var bytes = new Uint8Array(buffer);
+            var len = bytes.byteLength;
+            for (var i = 0; i < len; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary);
+        }
+    </script>
+    
+
+</body>
+</html>
