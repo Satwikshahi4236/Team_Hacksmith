@@ -1,2 +1,2 @@
-# Team_Hacksmith
-L
+Legal Documentation Assistant Enhanced by Gen.AI:-
+
